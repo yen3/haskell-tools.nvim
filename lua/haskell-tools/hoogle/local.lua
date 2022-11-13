@@ -25,8 +25,12 @@ local function setup_telescope_search()
   function M.telescope_search(search_term, opts)
     opts = util.tbl_merge(opts or {}, {
       layout_strategy = 'horizontal',
-      layout_config = { preview_width = 80 },
     })
+    if opts.layout_strategy == 'horizontal' then
+      opts = util.tbl_merge(opts, {
+        layout_config = { preview_width = 80 },
+      })
+    end
     opts.entry_maker = opts.entry_maker or hoogle_util.mk_hoogle_entry
     Job:new({
       command = 'hoogle',

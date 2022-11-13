@@ -20,9 +20,9 @@ end
 local function mk_hoogle_request(search_term, opts)
   local hoogle_opts = opts.hoogle or {}
   local scope_param = hoogle_opts.scope and '&scope=' .. hoogle_opts.scope or ''
-  return 'https://hoogle.haskell.org/?hoogle=' 
+  return 'https://hoogle.haskell.org/?hoogle='
     .. urlencode(search_term)
-    .. scope_param 
+    .. scope_param
     .. (hoogle_opts.json and '&mode=json' or '')
 end
 
@@ -44,9 +44,13 @@ local function setup_telescope_search()
       end
       opts = util.tbl_merge(opts or {}, {
         layout_strategy = 'horizontal',
-        layout_config = { preview_width = 80 },
         hoogle = { json = true },
       })
+      if opts.layout_strategy == 'horizontal' then
+        util.tbl_merge(opts, {
+          layout_config = { preview_width = 80 },
+        })
+      end
       local response = curl.get {
         url = mk_hoogle_request(search_term, opts),
         accept = 'application/json',

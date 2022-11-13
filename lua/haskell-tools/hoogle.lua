@@ -33,26 +33,28 @@ end
 local function get_signature_from_markdown(docs)
   local func_name = vim.fn.expand('<cword>')
   local full_sig = docs:match('```haskell\n' .. func_name .. ' :: ([^```]*)')
-  return full_sig 
+  return full_sig
     and full_sig:gsub('\n', ' ') -- join lines
         :gsub('forall .*%.%s', '') -- hoogle cannot search for `forall a.`
     or func_name -- Fall back to value under cursor
 end
 
-local function on_lsp_hoogle_signature(_, result, _, _)
-  if not (result and result.contents) then
-    vim.notify('hoogle: No information available')
-    return
-  end
-  local signature = get_signature_from_markdown(result.contents.value)
-  if signature and signature ~= '' then
-    ht.hoogle.handler(signature)
+local function on_lsp_hoogle_signature(options)
+  return function(_, result, _, _)
+    if not (result and result.contents) then
+      vim.notify('hoogle: No information available')
+      return
+    end
+    local signature = get_signature_from_markdown(result.contents.value)
+    if signature and signature ~= '' then
+      ht.hoogle.handler(signature, options)
+    end
   end
 end
 
 local function lsp_hoogle_signature(options)
   local params = lsp_util.make_position_params()
-  return vim.lsp.buf_request(0, 'textDocument/hover', params, on_lsp_hoogle_signature)
+  return vim.lsp.buf_request(0, 'textDocument/hover', params, on_lsp_hoogle_signature(options))
 end
 
 function M.hoogle_signature(options)
@@ -61,7 +63,7 @@ function M.hoogle_signature(options)
     lsp_hoogle_signature(options)
   else
     local cword = vim.fn.expand('<cword>')
-    ht.hoogle.handler(cword)
+    ht.hoogle.handler(cword, options)
   end
 end
 
